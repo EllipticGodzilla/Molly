@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+//todo che cazz è sta roba, da rifare tutto
 public class ImageBuilder implements GraphicsOptionBuilder<ImageIcon> {
     private static final Pattern IMAGE_PATTERN = Pattern.compile("image\\(([a-zA-Z0-9/._-]+)\\)");
     private static final Map<String, String> ICONS_FILE_PATH = new LinkedHashMap<>();
