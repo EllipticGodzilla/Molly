@@ -23,9 +23,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/*
- * gestisce la connessione a server
- */
+//gestisce la connessione a server
 public abstract class ServerInterface {
     /*
      * tutti i connectors, encoders, dns, server disponibili devono essere registrati in queste mappe che legano ognuno
@@ -51,7 +49,7 @@ public abstract class ServerInterface {
     private static final Vector<String> class_members = new Vector<>();
 
     /*
-     * ogni server può decidere le informazioni da richiedere agli utenti per registrare un nuovo utente o eseguire il login, una volta ricevute
+     * Ogni server può decidere le informazioni da richiedere agli utenti per registrare un nuovo utente o eseguire il login, una volta ricevute
      * le formatta in un TempPanel_info, viene svuotato ogni volta che si esegue il login con successo in un utente o ci si
      * disconnette dal server.
      * per richieder il format delle informazioni si invia "register" o "login" senza nessun payload.
@@ -61,6 +59,7 @@ public abstract class ServerInterface {
     //utilizzando lo stesso TempPanel_action per mandare al server i dati, deve essere specificato qui che prefisso utilizzare
     private static byte[] sender_prefix;
 
+    ///Inizializza e aggiunge alla lista dei registrati l encoder standard e i due connector, per server e dns
     public static void init_standards() {
         Logger.log("carico tutti gli standard per le connessioni");
 
@@ -73,7 +72,7 @@ public abstract class ServerInterface {
         ModLoader.load_connector(std_server_connector);
     }
 
-    /*
+    /**
      * Tenta la connessione con un server, se è stato registrato l'indirizzo ip chiama direttamente il connector inizializzando
      * la connessione, se è registrato il link dovrà prima trovare l'indirizzo ip collegandosi al DNS.
      * Una volta finito l'handshake riceve la lista di encoders supportati dal server, deve trovarne uno in comune e inviarlo
@@ -130,6 +129,7 @@ public abstract class ServerInterface {
         }
         Logger.log("scelto l'encoder (" + agreed_encoder_name + ") per cifrare la connessione con il server (" + server_name + ")");
 
+        //tenta di inizializzare l'encoder condividendo con il server un numero specificato di byte
         EncodersWrapper server_encoder = init_encoder(server_connector, session_cipher, agreed_encoder_name);
         if (server_encoder == null) {
             Logger.log("impossibile inizializzare l'encoder (" + agreed_encoder_name + ")", true);
@@ -210,23 +210,24 @@ public abstract class ServerInterface {
             return null;
         }
 
-        switch (server_reply) {
-            case "ok":
+        return switch (server_reply) {
+            case "ok" -> {
                 Logger.log("l'encoder specificato nelle ServerInfo è supportato, utilizzo (" + server_info.ENCODER + ")");
-                return server_info.ENCODER;
-
-            case "ns":
+                yield server_info.ENCODER;
+            }
+            case "ns" -> {
                 Logger.log("l'encoder specificato nelle ServerInfo (" + server_info.ENCODER + ") non è supportato dal server");
-                return propose_encoder_change(connector, session_cipher, server_info);
-
-            default:
+                yield propose_encoder_change(connector, session_cipher, server_info);
+            }
+            default -> {
                 Logger.log("impossibile completare l'encoder agreement, era atteso \"ns\" o \"ok\" ma è stato ricevuto: " + server_reply, true);
-                return null;
-        }
+                yield null;
+            }
+        };
     }
 
     /*
-     * Durante l'encoder agreement se il server risponde con "ns" invia anche la lista con tutti gli encoders
+     * Durante l encoder agreement se il server risponde con "ns" invia anche la lista con tutti gli encoders
      * installati, cerca fra di essi tutti quelli che sono installati anche in questo client e chiede all'utente se
      * vuole cambiare encoder specificato nelle server info
      */
@@ -241,11 +242,11 @@ public abstract class ServerInterface {
         Vector<Object> user_response = TempPanel.show(new TempPanel_info(
                 TempPanel_info.INPUT_MSG,
                 true,
-                "impossibile utilizzare l'encoder predefinito, vuoi cambiarlo?"
+                "impossibile utilizzare l encoder predefinito, vuoi cambiarlo?"
         ), Thread.currentThread());
 
-        if (user_response != null) {
-            Logger.log("l'utente ha accettato di modificare l'encoder legato a questo server");
+        if (user_response != null) { //user_response = null quando viene premuto "annulla"
+            Logger.log("l'utente ha accettato di modificare l encoder legato a questo server");
 
             String[] usable_encoders = get_common_encoder(server_encoder_list);
 
@@ -258,7 +259,7 @@ public abstract class ServerInterface {
             return change_encoder(connector, usable_encoders, session_cipher, server_info);
         }
         else {
-            Logger.log("l'utente non ha accettato di modificare l'encoder legato a questo server, chiudo la connessione");
+            Logger.log("l'utente non ha accettato di modificare l encoder legato a questo server, chiudo la connessione");
             return null;
         }
     }
@@ -281,7 +282,11 @@ public abstract class ServerInterface {
         return common.toArray(new String[0]);
     }
 
-    //TODO descrivere questo metodo
+    /*
+     * durante l encoder agreement se non si può utilizzare l encoder presente nelle ServerInfo e l'utente accetta, si
+     * può cambiare automaticamente in un encoder supportato dal server, questo metodo riceve la lista di encoders
+     * utilizzabili e richiede all'utente di sceglierne uno da utilizzare anche per le prossime connessioni con il server
+     */
     private static String change_encoder(ConnectorWrapper connector, String[] usable_encoders, Cipher[] session_cipher, ServerInfo server_info) {
         Vector<Object> user_response = TempPanel.show(new TempPanel_info(
                 TempPanel_info.INPUT_MSG,
@@ -293,7 +298,7 @@ public abstract class ServerInterface {
         ), Thread.currentThread());
 
         if (user_response != null) {
-            String selected_encoder = (String) user_response.getFirst();;
+            String selected_encoder = (String) user_response.getFirst();
             Logger.log("l'utente ha selezionato l'encoder: (" + selected_encoder + ") dalla lista");
 
             byte[] server_reply;
@@ -369,11 +374,138 @@ public abstract class ServerInterface {
     }
 
     /*
-     * todo una volta scelto che encoder utilizzare con il server deve condividere un numero di byte random specificato da
+     * una volta scelto che encoder utilizzare con il server deve condividere un numero di byte random specificato da
      * agreed_encoder_name e inizializzare l'encoder usando questo array
      */
     private static EncodersWrapper init_encoder(ConnectorWrapper connector, Cipher[] session_cipher, String agreed_encoder_name) {
-        return null;
+        EncodersWrapper encoder = registered_encoders.get(agreed_encoder_name);
+        if (encoder == null) {
+            Logger.log("impossibile trovare l encoder (" + agreed_encoder_name + ") per inizializzarlo", true);
+            return null;
+        }
+
+        //genera i bytes da condividere con il server per inizializzare l'encoder
+        byte[] shared_bytes = new byte[encoder.array_size];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(shared_bytes);
+
+        //encoder.initialize() ritorna false se ha riscontrato un errore, true se è stato inizializzato con successo
+        if (!encoder.initialize(shared_bytes)) {
+            Logger.log("errore durante l'inizializzazione dell encoder", true);
+            return null;
+        }
+
+        //tenta di inviare i byte al server cifrati con la session key
+        try {
+            shared_bytes = session_cipher[0].doFinal(shared_bytes);
+            connector.send(shared_bytes);
+        }
+        catch (Exception e) {
+            Logger.log("impossibile condividere con il server i bytes necessari a inizializzare l encoder", true);
+            Logger.log(e.getMessage(), true);
+            return null;
+        }
+
+        //controlla che il server sia in grado di utilizzare l'encoder
+        if (test_encoder(encoder, connector, session_cipher)) {
+            Logger.log("encoder inizializzato con successo");
+            return encoder;
+        }
+        else {
+            Logger.log("impossibile inizializzare l encoder", true);
+            return null;
+        }
+    }
+
+    /*
+     * Una volta inizializzato l encoder e inviati i byte al server per inizializzarlo, si vuole controllare che entrambi
+     * siano effettivamente in grado di utilizzare l encoder per cifrare e decifrare messaggi.
+     * Il server e il client generano 32bytes random e li inviano cifrati con la session key all'altro che dovrà
+     * cifrarli con l encoder e mandarli in dietro.
+     * Infine se entrambi hanno ricevuto i propri bytes cifrati con l encoder in modo corretto inviano "ack", altrimenti
+     * inviano "abt" cifrando in ogni caso con la session key.
+     */
+    private static boolean test_encoder(EncodersWrapper encoder, ConnectorWrapper connector, Cipher[] session_cipher) {
+        byte[] my_test_bytes = new byte[32];
+        new SecureRandom().nextBytes(my_test_bytes);
+
+        //invia i propri bytes cifrati con la session key
+        try {
+            byte[] encoded_mtb = session_cipher[0].doFinal(my_test_bytes);
+            connector.send(encoded_mtb);
+        }
+        catch (Exception e) {
+            Logger.log("impossibile inviare al server i bytes per il test dell encoder", true);
+            return false;
+        }
+
+        //riceve i bytes del server cifrati con la session key, li decifra e li rinvia al server cifrati usando l encoder
+        try {
+            byte[] server_test_bytes = connector.read();
+            byte[] decoded_stb = session_cipher[1].doFinal(server_test_bytes);
+            byte[] encoded_stb = encoder.encode(decoded_stb);
+            connector.send(encoded_stb);
+        }
+        catch (Exception e) {
+            Logger.log("impossibile decifrare e cifrare usando l encoder i bytes ricevuti dal server per il test dell encoder", true);
+            return false;
+        }
+
+        //riceve i bytes dal server cifrati con l encoder
+        byte[] received_bytes = connector.read();
+        if (received_bytes == null) {
+            Logger.log("errore nella ricezione dei bytes per testare l encoder con il server", true);
+            return false;
+        }
+
+        received_bytes = encoder.decode(received_bytes);
+        if (received_bytes == null) {
+            Logger.log("impossibile decifrare i bytes ricevuti dal server con l encoder, durante il test dell encoder", true);
+            return false;
+        }
+
+        if (Arrays.equals(received_bytes, my_test_bytes)) {
+            Logger.log("ricevuti i bytes corretti dal server");
+
+            try {
+                connector.send(session_cipher[0].doFinal("ack".getBytes()));
+            }
+            catch (Exception e) {
+                Logger.log("impossibile cifrare il messaggio di riuscita del test per inviarlo al server", true);
+                Logger.log(e.getMessage(), true);
+                return false;
+            }
+
+            try {
+                byte[] server_state = connector.read();
+                if (server_state != null && Arrays.equals(session_cipher[1].doFinal(server_state), "ack".getBytes())) {
+                    Logger.log("test dell encoder passato con successo");
+                    return true;
+                }
+                else {
+                    Logger.log("il server non ha accettato il test dell encoder, test fallito", true);
+                    return false;
+                }
+            }
+            catch (Exception e) {
+                Logger.log("errore nell'attesa del messaggio di conferma per il test dell encoder, test fallito", true);
+                Logger.log(e.getMessage(), true);
+                return false;
+            }
+        }
+        else {
+            Logger.log("il server non ha cifrato correttamente i bytes con l encoder, test fallito", true);
+
+            try {
+                connector.send(session_cipher[0].doFinal("abt".getBytes()));
+            }
+            catch (Exception e) {
+                Logger.log("impossibile cifrare il messaggio per il fallimento del test al server", true);
+                Logger.log(e.getMessage(), true);
+            }
+
+            return false;
+        }
     }
 
     /*
@@ -394,7 +526,7 @@ public abstract class ServerInterface {
      * Per eseguire il login richiede al server la lista di informazioni da richiedere all'utente e le formatta in un
      * TempPanel_info, se non lo ha già fatto precedentemente per questo server.
      */
-    private static TempPanel_action login_or_register = new TempPanel_action() {
+    private static final TempPanel_action login_or_register = new TempPanel_action() {
         @Override
         public void success() {
             if (input.elementAt(0).equals("login")) {
@@ -418,7 +550,21 @@ public abstract class ServerInterface {
     private static void request_login() {
         if (login_requests == null) {
             byte cc = send("login".getBytes(), null);
-            String requests_str = new String(Connection.wait_for_reply(cc));
+
+            byte[] server_return = Connection.wait_for_reply(cc);
+            if (server_return == null) {
+                Logger.log("impossibile eseguire un login, errore nell'attesa delle informazioni da richiedere all'utente dal server", true);
+                TempPanel.show(new TempPanel_info(
+                        TempPanel_info.SINGLE_MSG,
+                        false,
+                        "errore nella comunicazione con il server, chiudo la connessione"
+                ), null);
+
+                close(true);
+                return;
+            }
+
+            String requests_str = new String(server_return);
             Connection.unlock_cc(cc);
 
             login_requests = build_temppanel_info(requests_str);
@@ -435,6 +581,19 @@ public abstract class ServerInterface {
     private static void request_register() {
         if (register_requests == null) {
             byte cc = send("register".getBytes(), null);
+
+            byte[] server_return = Connection.wait_for_reply(cc);
+            if (server_return == null) {
+                Logger.log("impossibile registrari, errore nell'attesa delle informazioni da richiedere all'utente dal server", true);
+                TempPanel.show(new TempPanel_info(
+                        TempPanel_info.SINGLE_MSG,
+                        false,
+                        "errore nella comunicazione con il server, chiudo la connessione"
+                ), null);
+
+                close(true);
+                return;
+            }
             String requests_str = new String(Connection.wait_for_reply(cc));
             Connection.unlock_cc(cc);
 
@@ -505,7 +664,7 @@ public abstract class ServerInterface {
      * Per distinguere fra login e registrazione prima di utilizzare info_sender è necessario specificare il prefisso da
      * utilizzare in sender_prefix
      */
-    private static TempPanel_action info_sender = new TempPanel_action() {
+    private static final TempPanel_action info_sender = new TempPanel_action() {
         @Override
         public void success() {
             //per unire tutte le informazioni in un unico vettore byte[] calcola prima la sua dimensione
@@ -556,7 +715,7 @@ public abstract class ServerInterface {
      * login è stato effettuato con successo "log:<id>" altrimenti "fail:<msg>", dove <msg> può anche essere null. In
      * ogni caso questa conversazione è finita quindi libera il cc
      */
-    private static OnArrival log_result = new OnArrival() {
+    private static final OnArrival log_result = new OnArrival() {
         @Override
         public void on_arrival(byte conv_code, byte[] msg) {
             Connection.unlock_cc(conv_code);
@@ -600,7 +759,7 @@ public abstract class ServerInterface {
         }
     };
 
-    /*
+    /**
      * invia un messaggio a cui non è attesa nessuna risposta dal server, per queste conversazioni viene sempre utilizzato
      * il cc = 0x00 che chiaramente è l'unico cc non bloccabile e a cui non è possibile registrare OnArrival o Thread in attesa
      */
@@ -608,7 +767,7 @@ public abstract class ServerInterface {
         Connection.send(msg, (byte) 0x00, null);
     }
 
-    /*
+    /**
      * Invia un messaggio al server iniziando una nuova conversazione e aspettandosi una continuazione registrando un
      * OnArrival da chiamare una volta ricevuta una risposta dal server, il cc viene bloccato.
      * Il cc viene generato casualmente fra quelli non bloccati e viene ritornato dalla funzione.
@@ -628,7 +787,7 @@ public abstract class ServerInterface {
         return cc;
     }
 
-    /*
+    /**
      * invia un messaggio specificando cc, è inteso da utilizzzare per rispondere a un messaggio del server a cui non è
      * più attesa una risposta, non viene bloccato il cc e non viene registrato nessun OnArrival o Thread in attesa
      */
@@ -636,7 +795,7 @@ public abstract class ServerInterface {
         Connection.send(msg, cc, null);
     }
 
-    /*
+    /**
      * invia un messaggio al server specificando che cc utilizzare e in che modo attendere una risposta da esso:
      * cc: cc da utilizzare per il messaggio, deve essere sempre specificato e se null da errore
      * notifier: oggetto da utilizzare per specificare come reagire una volta ricevuta una risposta dal sever, può essere
@@ -647,7 +806,7 @@ public abstract class ServerInterface {
         Connection.send(msg, cc, action);
     }
 
-    /*
+    /**
      * se cc è bloccato registra il current thread a waiting_threads e attende che venga notificato quando viene ricevuta
      * una risposta dal server.
      * Viene ritornato null se cc non è bloccato o se fallisce a registrare il current thread come notifier, altrimenti
@@ -657,7 +816,7 @@ public abstract class ServerInterface {
         return Connection.wait_for_reply(cc);
     }
 
-    //se il cc specificato è bloccato lo libera
+    ///se il cc specificato è bloccato lo libera
     public static void unlock_cc(byte cc) {
         Connection.unlock_cc(cc);
     }
@@ -672,7 +831,7 @@ public abstract class ServerInterface {
     public static void exit_class() {
     }
 
-    /*
+    /**
      * chiude la connessione con il server, se è questo client che vuole scollegarsi dovrà avvisare il server, se invece
      * il server si è disconnesso una notifica produrrebbe errore.
      */
@@ -752,7 +911,7 @@ public abstract class ServerInterface {
         registered_dns.clear();
     }
 
-    /*
+    /**
      * Aggiorna i dati relativi a uno dei dns registrati o ne crea di nuovi.
      * Per prima cosa controlla se deve eliminare il dns, in tal caso new_data = null, altrimenti aggiorna i dati
      * memorizzati nella mappa registered_dns. Per i dns non è necessario controllare che l'oggetto DnsInfo ricevuto
@@ -852,7 +1011,7 @@ public abstract class ServerInterface {
 
     public static ServerInfo get_server_info(String server_name) { return registered_servers.get(server_name); }
 
-    /*
+    /**
      * Aggiorna i dati relativi a uno dei server registrati.
      * Per prima cosa controlla se deve eliminare il server, in tal caso new_data = null, altrimenti testa che i dati
      * ricevuti siano sufficienti a definire un server correttamente, guarda is_valid_server_data(), e se vanno bene
@@ -942,11 +1101,7 @@ public abstract class ServerInterface {
             return false;
         }
 
-        if (data.SERVER_PORT == 0) {
-            return false;
-        }
-
-        return true;
+        return data.SERVER_PORT != 0;
     }
 
     public static void remove_server(String name) {
@@ -996,11 +1151,6 @@ abstract class StdProtocol {
 
     private static final Random random = new Random();
     private static SecretKey session_key;
-
-    @EncoderDefinition.Compatibility
-    public static String[] compatible_with() {
-        return new String[] {"standard encoder"};
-    }
 
     @EncoderDefinition.Initializer
     public static void init(byte[] check_code) {
@@ -1223,7 +1373,7 @@ abstract class STDConnector {
             session_decoder = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
             if (random == null) {
-                SecureRandom random = new SecureRandom();
+                random = new SecureRandom();
                 random.setSeed(System.currentTimeMillis());
             }
 

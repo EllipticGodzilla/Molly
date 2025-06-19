@@ -29,7 +29,7 @@ public class EncodersWrapper {
 
     public boolean initialize(byte[] check_code) {
         try {
-            initializer.invoke(null, check_code);
+            initializer.invoke(null, (Object) check_code);
             return true;
         }
         catch (Exception e) {
@@ -42,7 +42,7 @@ public class EncodersWrapper {
 
     public byte[] encode(byte[] msg) {
         try {
-            return (byte[]) encoder.invoke(null, msg);
+            return (byte[]) encoder.invoke(null, (Object) msg);
         }
         catch (Exception e) {
             Logger.log("impossibile invocare il metodo encoder per l encoder: " + name, true);
@@ -54,7 +54,7 @@ public class EncodersWrapper {
 
     public byte[] decode(byte[] msg) {
         try {
-            return (byte[]) decoder.invoke(null, msg);
+            return (byte[]) decoder.invoke(null, (Object) msg);
         }
         catch (Exception e) {
             Logger.log("impossibile invocare il metodo decoder per l encoder: " + name, true);

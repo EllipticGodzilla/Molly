@@ -18,10 +18,6 @@ public @interface EncoderDefinition {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    @interface Compatibility { }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
     @interface Encoder { }
 
     @Retention(RetentionPolicy.RUNTIME)

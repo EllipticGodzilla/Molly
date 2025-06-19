@@ -43,7 +43,7 @@ public class ImageBuilder implements GraphicsOptionBuilder<ImageIcon> {
             ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/files_pres.png").getPath(), "resource./images/files_pres.png");
             ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/fullScreen.png").getPath(), "resource./images/fullScreen.png");
             ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/fullScreen_pres.png").getPath(), "resource./images/fullScreen_pres.png");
-            ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/godzilla.png").getPath(), "resource./images/godzilla.png");
+            ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/molly.png").getPath(), "resource./images/molly.png");
             ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/hide.png").getPath(), "resource./images/hide.png");
             ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/hide_pres.png").getPath(), "resource./images/hide_pres.png");
             ICONS_FILE_PATH.put(ImageBuilder.class.getResource("/images/icon_16.png").getPath(), "resource./images/icon_16.png");

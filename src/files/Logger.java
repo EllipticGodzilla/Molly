@@ -32,12 +32,10 @@ public abstract class Logger {
         }
 
         //se è stato creato FileOutputStream con successo ha resettato il file, come prima cosa scrive "clear" per indicare che non è cifrato
-        if (temp_ostream != null) {
-            try {
-                temp_ostream.write("clear\n".getBytes());
-            }
-            catch (IOException _) {}
+        try {
+            temp_ostream.write("clear\n".getBytes());
         }
+        catch (IOException _) {}
 
         ostream = temp_ostream;
     }

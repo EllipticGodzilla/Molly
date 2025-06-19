@@ -12,14 +12,12 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 public abstract class MollyFrame {
-    private static JPanel temp_panel = null;
     private static MFrame godzilla_frame = null;
 
     //inizializza la schermata e ritorna il JFrame
     public static JFrame init() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException {
         if (godzilla_frame == null) {
-            MLayeredPane layered_panel = new MLayeredPane();
-            godzilla_frame = new MFrame(layered_panel);
+            godzilla_frame = new MFrame();
 
             //inizializza tutti i pannelli che formeranno la gui principale
             //tutti i pannelli da aggiungere al frame
@@ -27,7 +25,7 @@ public abstract class MollyFrame {
             JPanel client_list = ClientList_panel.init();
             JPanel button_topbar = ButtonTopBar_panel.init();
             JPanel central_terminal = CentralPanel.init();
-            temp_panel = TempPanel.init();
+            JPanel temp_panel = TempPanel.init();
 
             //inizializza la gui principale (tutti i pannelli tranne Temp Panels)
             JPanel content_panel = new JPanel();
@@ -65,8 +63,9 @@ public abstract class MollyFrame {
             content_panel.add(central_terminal, c);
 
             content_panel.setBounds(0, 0, 900, 663);
-            layered_panel.add_fullscreen(content_panel, JLayeredPane.DEFAULT_LAYER);
-            layered_panel.add(temp_panel, JLayeredPane.POPUP_LAYER);
+            MLayeredPane layeredPane = (MLayeredPane) godzilla_frame.getLayeredPane();
+            layeredPane.add_fullscreen(content_panel, JLayeredPane.DEFAULT_LAYER);
+            layeredPane.add(temp_panel, JLayeredPane.POPUP_LAYER);
 
             Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
             godzilla_frame.setLocation(

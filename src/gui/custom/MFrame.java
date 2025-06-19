@@ -6,10 +6,8 @@ import gui.themes.GraphicsSettings;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -30,24 +28,21 @@ public class MFrame extends JFrame {
     private final ServerSettingsPanel server_settings_panel = new ServerSettingsPanel();
     private final DnsSettingsPanel dns_settings_panel = new DnsSettingsPanel();
 
-    /*
-     * inizializza il frame, viene richiesto un layered pane poiché se si imposta la manu bar prima di impostare il layered
-     * pane questa viene cancellata
-     */
-    public MFrame(MLayeredPane layeredPane) {
+    public MFrame() {
         super();
 
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(900, 500);
+        //volendo un JFrame undecorated ma che può essere ridimensionato dal mouse imposta una decorazione e poi rimuove la grafica
         this.setUndecorated(true);
-        this.setLayeredPane(layeredPane);
+        this.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+        this.getRootPane().setBorder(null);
+        this.setLayeredPane(new MLayeredPane()); //permette di aggiungere elementi in full screen e supporta la menu bar
+
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setMinimumSize(new Dimension(900, 500));
+
         menu_bar.addMouseListener(menu_bar_mouse_listener);
         menu_bar.setBorderPainted(false);
         menu_bar.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-
-        FrameResizer resizer = new FrameResizer();
-        this.addMouseListener(resizer);
-        this.addMouseMotionListener(resizer);
 
         update_colors();
 
@@ -74,8 +69,7 @@ public class MFrame extends JFrame {
 
         init_menu_bar();
 
-        this.setJMenuBar(menu_bar);
-        layeredPane.set_top_border(menu_bar.getPreferredSize().height);
+        ((MLayeredPane) this.getLayeredPane()).set_menu_bar(menu_bar);
     }
 
     public void update_colors() {
@@ -185,8 +179,8 @@ public class MFrame extends JFrame {
         };
     };
 
-    /*
-     * aggiunge un elemento al menu specificando la sua path, "<menu1>/<menu2>/.." e quale azione eseguire quando si preme
+    /**
+     * Aggiunge un elemento al menu specificando la sua path, "<menu1>/<menu2>/.." e quale azione eseguire quando si preme
      * ritorna true se è riuscito ad aggiungere il nuovo menu, false altrimenti
      */
     public boolean add_menu(String menu_path, Runnable action) {
@@ -213,233 +207,6 @@ public class MFrame extends JFrame {
             }
 
             return root_menu.add(remaining_path, action);
-        }
-    }
-}
-
-//    LET THE USER RESIZE THE JFRAME, revisit of https://github.com/tips4java/tips4java/blob/main/source/ComponentResizer.java
-class FrameResizer extends MouseAdapter {
-    private final Dimension MIN_SIZE = new Dimension(900, 500);
-
-    private int direction;
-    protected static final int NORTH = 1;
-    protected static final int WEST = 2;
-    protected static final int SOUTH = 4;
-    protected static final int EAST = 8;
-
-    private static final int RESIZE_EVENT_BORDER = 5;
-
-    private Cursor sourceCursor;
-    private boolean resizing;
-    private Rectangle bounds;
-    private Point pressed;
-
-    private static final Map<Integer, Integer> CURSORS = new HashMap<>();
-    static {
-        CURSORS.put(1, Cursor.N_RESIZE_CURSOR);
-        CURSORS.put(2, Cursor.W_RESIZE_CURSOR);
-        CURSORS.put(4, Cursor.S_RESIZE_CURSOR);
-        CURSORS.put(8, Cursor.E_RESIZE_CURSOR);
-        CURSORS.put(3, Cursor.NW_RESIZE_CURSOR);
-        CURSORS.put(9, Cursor.NE_RESIZE_CURSOR);
-        CURSORS.put(6, Cursor.SW_RESIZE_CURSOR);
-        CURSORS.put(12, Cursor.SE_RESIZE_CURSOR);
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e)
-    {
-        Component source = e.getComponent();
-        Point location = e.getPoint();
-        direction = 0;
-
-        if (location.x < RESIZE_EVENT_BORDER)
-            direction += WEST;
-
-        if (location.x > source.getWidth() - RESIZE_EVENT_BORDER - 1)
-            direction += EAST;
-
-        if (location.y < RESIZE_EVENT_BORDER)
-            direction += NORTH;
-
-        if (location.y > source.getHeight() - RESIZE_EVENT_BORDER - 1)
-            direction += SOUTH;
-
-        //  Mouse is no longer over a resizable border
-
-        if (direction == 0)
-        {
-            source.setCursor( sourceCursor );
-        }
-        else  // use the appropriate resizable cursor
-        {
-            int cursorType = CURSORS.get( direction );
-            Cursor cursor = Cursor.getPredefinedCursor( cursorType );
-            source.setCursor( cursor );
-        }
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e)
-    {
-        if (! resizing)
-        {
-            Component source = e.getComponent();
-            sourceCursor = source.getCursor();
-        }
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e)
-    {
-        if (! resizing)
-        {
-            Component source = e.getComponent();
-            source.setCursor( sourceCursor );
-        }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e)
-    {
-        //	The mouseMoved event continually updates this variable
-
-        if (direction == 0) return;
-
-        //  Setup for resizing. All future dragging calculations are done based
-        //  on the original bounds of the component and mouse pressed location.
-
-        resizing = true;
-
-        Component source = e.getComponent();
-        pressed = e.getPoint();
-        SwingUtilities.convertPointToScreen(pressed, source);
-        bounds = source.getBounds();
-    }
-
-    /**
-     *  Restore the original state of the Component
-     */
-    @Override
-    public void mouseReleased(MouseEvent e)
-    {
-        resizing = false;
-
-        Component source = e.getComponent();
-        source.setCursor( sourceCursor );
-
-        Component parent = source.getParent();
-
-        if (parent != null)
-        {
-            if (parent instanceof JComponent)
-            {
-                ((JComponent)parent).revalidate();
-            }
-            else
-            {
-                parent.validate();
-            }
-        }
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        if (!resizing) return;
-
-        Component source = e.getComponent();
-        Point dragged = e.getPoint();
-        SwingUtilities.convertPointToScreen(dragged, source);
-
-        changeBounds(source, direction, bounds, pressed, dragged);
-    }
-
-    protected void changeBounds(Component source, int direction, Rectangle bounds, Point pressed, Point current)
-    {
-        //  Start with original locaton and size
-
-        int x = bounds.x;
-        int y = bounds.y;
-        int width = bounds.width;
-        int height = bounds.height;
-
-        //  Resizing the West or North border affects the size and location
-
-        if (WEST == (direction & WEST))
-        {
-            int drag = pressed.x - current.x;
-            int maximum = Math.min(width + x - 10, Integer.MAX_VALUE);
-            drag = getDragBounded(drag, width, MIN_SIZE.width, maximum);
-
-            x -= drag;
-            width += drag;
-        }
-
-        if (NORTH == (direction & NORTH))
-        {
-            int drag = pressed.y - current.y;
-            int maximum = Math.min(height + y - 10, Integer.MAX_VALUE);
-            drag = getDragBounded(drag, height, MIN_SIZE.height, maximum);
-
-            y -= drag;
-            height += drag;
-        }
-
-        //  Resizing the East or South border only affects the size
-
-        if (EAST == (direction & EAST))
-        {
-            int drag = current.x - pressed.x;
-            Dimension boundingSize = getBoundingSize( source );
-            int maximum = Math.min(boundingSize.width - x, Integer.MAX_VALUE);
-            drag = getDragBounded(drag, width, MIN_SIZE.width, maximum);
-            width += drag;
-        }
-
-        if (SOUTH == (direction & SOUTH))
-        {
-            int drag = current.y - pressed.y;
-            Dimension boundingSize = getBoundingSize( source );
-            int maximum = Math.min(boundingSize.height - y, Integer.MAX_VALUE);
-            drag = getDragBounded(drag, height, MIN_SIZE.height, maximum);
-            height += drag;
-        }
-
-        source.setBounds(x, y, width, height);
-        source.validate();
-    }
-
-    /*
-     *  Adjust the drag value to be within the minimum and maximum range.
-     */
-    private int getDragBounded(int drag, int dimension, int minimum, int maximum)
-    {
-        if (dimension + drag < minimum)
-            drag = minimum - dimension;
-
-        if (dimension + drag > maximum)
-            drag = maximum - dimension;
-
-        return drag;
-    }
-
-    /*
-     *  Keep the size of the component within the bounds of its parent.
-     */
-    private Dimension getBoundingSize(Component source)
-    {
-        if (source instanceof Window)
-        {
-            GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            Rectangle bounds = env.getMaximumWindowBounds();
-            return new Dimension(bounds.width, bounds.height);
-        }
-        else
-        {
-            Dimension d = source.getParent().getSize();
-            d.width += -10;
-            d.height += -10;
-            return d;
         }
     }
 }

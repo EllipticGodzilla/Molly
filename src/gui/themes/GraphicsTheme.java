@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Vector;
 
 public class GraphicsTheme {
-    private static List<String> keys = List.of( //tutte le chiavi a cui si possono assegnare valori, viene utilizzata una lista poiché Arrays.binarySearch() non è affidabile con String
+    private static final List<String> keys = List.of( //tutte le chiavi a cui si possono assegnare valori, viene utilizzata una lista poiché Arrays.binarySearch() non è affidabile con String
             "frame_background", //0
             "text_color",
             "list_background",
@@ -123,7 +123,7 @@ public class GraphicsTheme {
                     new ImageIcon(get_resource("/images/power_off_pres.png")),
                     new ImageIcon(get_resource("/images/power_off_dis.png"))
             ),
-            new ImageIcon(get_resource("/images/godzilla.png")), //central_panel_icon
+            new ImageIcon(get_resource("/images/molly.png")), //central_panel_icon
             Color.black, //central_panel_background
             new ButtonIcons( //client_panel_connect
                     new ImageIcon(get_resource("/images/power_on.png")),
@@ -360,6 +360,7 @@ public class GraphicsTheme {
         return true;
     }
 
+    @Override
     public GraphicsTheme clone() {
         GraphicsTheme clone_theme = new GraphicsTheme(NAME);
         clone_theme.VALUES = VALUES.clone();

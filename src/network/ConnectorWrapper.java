@@ -119,7 +119,7 @@ public class ConnectorWrapper {
     public void send(byte[] data) {
         if (type == SERVER_CONNECTOR) {
             try {
-                sender.invoke(null, data);
+                sender.invoke(null, (Object) data);
             }
             catch (Exception e) {
                 Logger.log("errore nell'invio di dati attraverso il connector: " + name, true);

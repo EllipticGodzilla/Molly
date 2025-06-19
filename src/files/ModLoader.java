@@ -273,7 +273,7 @@ public class ModLoader extends ClassLoader {
         Logger.log("registro un nuovo encoder dalla classe: " + encoder_class.getName());
 
         String name = encoder_class.getAnnotation(EncoderDefinition.class).name();
-        Method initializer = null, encoder = null, decoder = null, compatibility = null;
+        Method initializer = null, encoder = null, decoder = null;
 
         int initialized = 0;
         for (Method method : encoder_class.getMethods()) {
@@ -287,10 +287,6 @@ public class ModLoader extends ClassLoader {
             }
             else if (method.isAnnotationPresent(EncoderDefinition.Decoder.class) && decoder == null) {
                 decoder = method;
-                initialized ++;
-            }
-            else if (method.isAnnotationPresent(EncoderDefinition.Compatibility.class) && compatibility == null) {
-                compatibility = method;
                 initialized ++;
             }
 
@@ -308,7 +304,7 @@ public class ModLoader extends ClassLoader {
 
         int array_size = encoder_class.getAnnotation(EncoderDefinition.class).array_size();
 
-        EncodersWrapper info = new EncodersWrapper(name, initializer, array_size, encoder, decoder, compatibility);
+        EncodersWrapper info = new EncodersWrapper(name, initializer, array_size, encoder, decoder);
         ServerInterface.add_encoder(name, info);
     }
 

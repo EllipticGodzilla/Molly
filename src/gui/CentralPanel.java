@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public abstract class CentralPanel {
-    private static final ImagePanel IMAGE_PANEL = new ImagePanel(new ImageIcon(CentralPanel.class.getResource("/images/godzilla.png")));
+    private static final ImagePanel IMAGE_PANEL = new ImagePanel(new ImageIcon(CentralPanel.class.getResource("/images/molly.png")));
     private static final JPanel PROGRAMMABLE_PANEL = new JPanel();
     private static MLayeredPane layeredPane = null;
     private static final JPanel MAIN_PANEL = new JPanel();
