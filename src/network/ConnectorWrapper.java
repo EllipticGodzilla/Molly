@@ -19,33 +19,30 @@ import java.lang.reflect.Method;
  *     dovrà ritornare String contenente l'indirizzo ip del server o null se l'operazione non è andata a buon fine
  *
  *  2) server_connector, sono più complicati dovendo gestire una connessione più lunga, devono gestire il canale di
- *     comunicazione con il server specificando tre methods:
+ *     comunicazione con il server specificando:
  *     1) handshake: riceve una stringa con l'indirizzo ip del server e l'oggetto ServerInfo legato a questo server,
  *                   dovrà gestire la prima parte della connessione, una volta assicurata la sicurezza della connessione dovrà
  *                   ritornare un array con due Cipher, il primo encoder e il secondo decoder che verranno utilizzati
  *                   per cifrare la connessione prima di aver inizializzato un EncoderWrapper
- *     2) encoder_init: riceve il nome di un encoder che dovrà essere inizializzato comunicando il nome al server e
- *                      concordando numero di byte segreti
- *     3) sender: poca fantasia, deve inviare byte[] attraverso il canale specificato, non si deve occupare di sicurezza
+ *     2) sender: poca fantasia, deve inviare byte[] attraverso il canale specificato, non si deve occupare di sicurezza
  *                poiché il messaggio è già stato cifrato dall encoder prescelto. Non ritorna nulla
- *     4) reader: non riceve nulla e ritorna un singolo messaggio appena ricevuto dal server o null in caso di errore
+ *     3) reader: non riceve nulla e ritorna un singolo messaggio appena ricevuto dal server o null in caso di errore
  *                nel caso in cui il connector sia chiuso mentre si sta aspettando un messaggio dovrà ritornare null
- *     5) closer: viene chiamato quando si deve chiudere la connessione con il server
+ *     4) closer: viene chiamato quando si deve chiudere la connessione con il server
  */
 public class ConnectorWrapper {
     public static final int DNS_CONNECTOR = 0,
                             SERVER_CONNECTOR = 1;
     public final int type;
 
-    private final Method handshake, encoder_init, sender, reader, dns_handshake, closer;
+    private final Method handshake, sender, reader, dns_handshake, closer;
     public final String name;
 
-    public ConnectorWrapper(String name, Method handshake, Method encoder_init, Method sender, Method reader, Method closer) {
+    public ConnectorWrapper(String name, Method handshake, Method sender, Method reader, Method closer) {
         type = SERVER_CONNECTOR;
         this.name = name;
 
         this.handshake = handshake;
-        this.encoder_init = encoder_init;
         this.sender = sender;
         this.reader = reader;
         this.closer = closer;
@@ -58,7 +55,6 @@ public class ConnectorWrapper {
 
         this.closer = null;
         this.handshake = null;
-        this.encoder_init = null;
         this.sender = null;
         this.reader = null;
         this.dns_handshake = dns_handshake;
@@ -97,23 +93,6 @@ public class ConnectorWrapper {
             Logger.log("impossibile utilizzare il connector: " + name + " per handshake con server, è registrato come dns connector", true);
             return null;
         }
-    }
-
-    public EncodersWrapper encoder_initializer(String encoder_name) {
-        if (type == SERVER_CONNECTOR) {
-            try {
-                return (EncodersWrapper) encoder_init.invoke(null, encoder_name);
-            }
-            catch (Exception e) {
-                Logger.log("errore nell'inizializzazione dell'encoder: " + encoder_name + " con il connector: " + name, true);
-                Logger.log(e.getMessage(), true);
-            }
-        }
-        else {
-            Logger.log("impossibile utilizzare il connector: " + name + " come server connector, è registrato come dns", true);
-        }
-
-        return null;
     }
 
     public void send(byte[] data) {

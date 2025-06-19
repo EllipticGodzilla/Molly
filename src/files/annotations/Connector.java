@@ -17,10 +17,6 @@ public @interface Connector {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    @interface encoder_init {}
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
     @interface sender {}
 
     @Retention(RetentionPolicy.RUNTIME)

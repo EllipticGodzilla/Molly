@@ -275,30 +275,37 @@ public class ModLoader extends ClassLoader {
         String name = encoder_class.getAnnotation(EncoderDefinition.class).name();
         Method initializer = null, encoder = null, decoder = null;
 
-        int initialized = 0;
         for (Method method : encoder_class.getMethods()) {
             if (method.isAnnotationPresent(EncoderDefinition.Initializer.class) && initializer == null) {
                 initializer = method;
-                initialized ++;
             }
             else if (method.isAnnotationPresent(EncoderDefinition.Encoder.class) && encoder == null) {
                 encoder = method;
-                initialized ++;
             }
             else if (method.isAnnotationPresent(EncoderDefinition.Decoder.class) && decoder == null) {
                 decoder = method;
-                initialized ++;
             }
 
             //quando ha inizializzato tutti i metodi smette di cercarne altri
-            if (initialized == 4) {
+            if (initializer != null && encoder != null && decoder != null) {
                 break;
             }
         }
 
         //non è riuscito a inizializzare tutti i metodi
-        if (initialized != 4) {
+        if (initializer == null || encoder == null || decoder == null) {
             Logger.log("nella classe: " + encoder_class.getName() + " non sono specificati tutti i metodi necessari", true);
+
+            if (initializer == null) {
+                Logger.log("initializer non specificato", true);
+            }
+            if (encoder == null) {
+                Logger.log("encoder non specificato", true);
+            }
+            if (decoder == null) {
+                Logger.log("decoder non specificato", true);
+            }
+
             return;
         }
 
@@ -324,7 +331,7 @@ public class ModLoader extends ClassLoader {
             }
 
             if (handshake_method == null) {
-                Logger.log("non è stato registrato nessun metodo per gestire l'handshake", true);
+                Logger.log("per il connector: (" + connector_name + ") non è stato registrato nessun metodo per gestire l'handshake", true);
                 return;
             }
 
@@ -332,18 +339,14 @@ public class ModLoader extends ClassLoader {
             ServerInterface.add_connector(connector_name, wrapper);
         }
         else {
-            Method handshake = null;
-            Method encoder_init = null;
-            Method sender = null;
-            Method reader = null;
-            Method closer = null;
+            Method  handshake = null,
+                    sender = null,
+                    reader = null,
+                    closer = null;
 
             for (Method method : connector_class.getMethods()) {
                 if (method.isAnnotationPresent(Connector.handshake.class) && handshake == null) {
                     handshake = method;
-                }
-                else if (method.isAnnotationPresent(Connector.encoder_init.class) && encoder_init == null) {
-                    encoder_init = method;
                 }
                 else if (method.isAnnotationPresent(Connector.reader.class) && reader == null) {
                     reader = method;
@@ -355,17 +358,28 @@ public class ModLoader extends ClassLoader {
                     closer = method;
                 }
 
-                if (handshake != null && encoder_init != null && reader != null && sender != null && closer != null) {
+                if (handshake != null && reader != null && sender != null && closer != null) {
                     break;
                 }
             }
 
-            if (handshake == null || encoder_init == null || sender == null || reader == null || closer == null) {
-                Logger.log("è necessario specificare tutti e tre i metodi: handshake, sender, reader per connector da usare con server", true);
+            if (handshake == null || sender == null || reader == null || closer == null) {
+                Logger.log("per il connector: (" + connector_name + ") non sono stati specificati tutti i metodi necessari", true);
+
+                if (handshake == null) {
+                    Logger.log("handshake non specificato", true);
+                }
+                if (sender == null) {
+                    Logger.log("sender non specificato", true);
+                }
+                if (closer == null) {
+                    Logger.log("closer non specificato", true);
+                }
+
                 return;
             }
 
-            ConnectorWrapper wrapper = new ConnectorWrapper(connector_name, handshake, encoder_init, sender, reader, closer);
+            ConnectorWrapper wrapper = new ConnectorWrapper(connector_name, handshake, sender, reader, closer);
             ServerInterface.add_connector(connector_name, wrapper);
         }
     }
