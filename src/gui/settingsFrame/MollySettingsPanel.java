@@ -147,7 +147,7 @@ public class MollySettingsPanel implements SettingsPanel {
     }
 }
 
-//pannello mostrato quando si aprono le impostazioni graphics->themes nel pannello GodzillaSettings
+//pannello mostrato quando si aprono le impostazioni graphics->themes nel pannello MollySettings
 class ThemesSettings implements SettingsPanel {
     private static final JPanel main_panel = new JPanel();
     private static final ThemesDisplayer themes_displayer = new ThemesDisplayer();
@@ -175,7 +175,8 @@ class ThemesSettings implements SettingsPanel {
         save_theme_changes();
 
         for (String name : changes_map.keySet()) {
-            GraphicsSettings.add_changes(name, changes_map.get(name));
+            GraphicsSettings.load_changes(name, changes_map.get(name));
+            changes_map.remove(name);
         }
 
         GraphicsSettings.set_active_theme(original_theme.get_name());

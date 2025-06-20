@@ -35,7 +35,10 @@ public class MFrame extends JFrame {
         this.setUndecorated(true);
         this.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         this.getRootPane().setBorder(null);
-        this.setLayeredPane(new MLayeredPane()); //permette di aggiungere elementi in full screen e supporta la menu bar
+
+        MLayeredPane layeredPane = new MLayeredPane();
+        layeredPane.set_title("Molly client");
+        this.setLayeredPane(layeredPane); //permette di aggiungere elementi in full screen e supporta la menu bar
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setMinimumSize(new Dimension(900, 500));
@@ -69,12 +72,13 @@ public class MFrame extends JFrame {
 
         init_menu_bar();
 
-        ((MLayeredPane) this.getLayeredPane()).set_menu_bar(menu_bar);
+        layeredPane.set_menu_bar(menu_bar);
     }
 
     public void update_colors() {
         this.setBackground((Color) GraphicsSettings.active_theme().get_value("frame_background"));
         menu_bar.setBackground((Color) GraphicsSettings.active_theme().get_value("title_bar_background"));
+        ((MLayeredPane) this.getLayeredPane()).update_colors();
 
         for (Component menu : menu_bar.getComponents()) {
             if (menu instanceof MMenu m) {

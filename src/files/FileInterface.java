@@ -24,7 +24,7 @@ public abstract class FileInterface {
     static {
         String tmp_jar_path = FileInterface.class.getProtectionDomain().getCodeSource().getLocation().getPath(); //calcola l'abs path del jar
         tmp_jar_path = tmp_jar_path.substring(0, tmp_jar_path.length() - 1); //rimuove l'ultimo /
-        jar_path = tmp_jar_path.substring(0, tmp_jar_path.lastIndexOf('/')); //rimuove Godzilla.jar dalla fine della path
+        jar_path = tmp_jar_path.substring(0, tmp_jar_path.lastIndexOf('/')); //rimuove Molly.jar dalla fine della path
 
         add_file_updater(FileInterface::standard_updater);
         add_file_loader(FileInterface::standard_loader);
@@ -250,7 +250,7 @@ public abstract class FileInterface {
             if (file.isDirectory()) {
                 search_folder(file);
             }
-            else if (!file.getName().equals("Godzilla.jar")) {
+            else if (!file.getName().equals("Molly.jar")) {
                 add_file(file);
             }
         }

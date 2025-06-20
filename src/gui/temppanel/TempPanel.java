@@ -28,7 +28,7 @@ abstract public class TempPanel {
     private static boolean visible = false;
     private static boolean accept_esc_or_enter = false; //se possono essere utilizzati i tasti esc o invio al posto di premere i bottoni annulla, ok
 
-    public static JPanel init() throws IOException {
+    public static JPanel init() {
         if (temp_panel == null) {
             //imposta layout, background, border dei JPanel
             temp_panel = new JPanel();

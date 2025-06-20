@@ -11,48 +11,50 @@ import java.util.List;
 import java.util.Vector;
 
 public class GraphicsTheme {
-    private static final List<String> keys = List.of( //tutte le chiavi a cui si possono assegnare valori, viene utilizzata una lista poiché Arrays.binarySearch() non è affidabile con String
+    //tutte le chiavi a cui si possono assegnare valori, viene utilizzata una lista poiché Arrays.binarySearch() non è affidabile con String
+    private static final List<String> keys = List.of(
             "frame_background", //0
+            "frame_title_color",
             "text_color",
             "list_background",
             "list_text_color",
-            "list_selected_background",
-            "list_selected_nofocus_background", //5
+            "list_selected_background", //5
+            "list_selected_nofocus_background",
             "list_selected_text_color",
             "list_selected_border",
             "input_background",
-            "input_text_color",
-            "input_border", //10
+            "input_text_color", //10
+            "input_border",
             "temp_panel_show_password_button",
             "temp_panel_hide_password_button",
             "temp_panel_border",
-            "button_top_bar_left_shift",
-            "button_top_bar_right_shift",  //15
+            "button_top_bar_left_shift", //15
+            "button_top_bar_right_shift",
             "button_top_bar_stop_mod",
             "central_panel_icon",
             "central_panel_background",
-            "client_panel_connect",
-            "client_panel_disconnect", //20
+            "client_panel_connect", //20
+            "client_panel_disconnect",
             "server_panel_connect",
             "server_panel_disconnect",
             "server_panel_add_server",
-            "title_bar_background",
-            "title_bar_close", //25
+            "title_bar_background", //25
+            "title_bar_close",
             "title_bar_maximize",
             "title_bar_iconize",
             "dropdown_selected_background",
-            "dropdown_selected_text_color",
-            "dropdown_border", //30
+            "dropdown_selected_text_color", //30
+            "dropdown_border",
             "dropdown_background",
             "dropdown_text_color",
             "ok_icons",
-            "apply_icons",
-            "annulla_icons", //35
+            "apply_icons", //35
+            "annulla_icons",
             "settings_dropdown_list_opened_icon",
             "settings_dropdown_list_closed_icon",
             "scroll_bar_thumb_color",
-            "scroll_bar_thumb_darkshadow_color",
-            "scroll_bar_thumb_highlight_color", //40
+            "scroll_bar_thumb_darkshadow_color", //40
+            "scroll_bar_thumb_highlight_color",
             "scroll_bar_rail_color",
             "cascate_item_icon"
     );
@@ -65,30 +67,31 @@ public class GraphicsTheme {
     //per ogni chiave deve essere assegnato l index del builder a lei assegnato
     private static int[] builders_index = new int[] {
             0, 0, 0, 0, 0,
-            0, 0, 3, 0, 0,
-            3, 1, 1, 3, 1,
-            1, 1, 2, 0, 1,
-            1, 1, 1, 1, 0,
-            1, 1, 1, 0, 0,
-            3, 0, 0, 1, 1,
-            1, 2, 2, 0, 0,
-            0, 0, 2
+            0, 0, 0, 3, 0,
+            0, 3, 1, 1, 3,
+            1, 1, 1, 2, 0,
+            1, 1, 1, 1, 1,
+            0, 1, 1, 1, 0,
+            0, 3, 0, 0, 1,
+            1, 1, 2, 2, 0,
+            0, 0, 0, 2
     };
     private static Object[] std_values = new Object[] { //valori standard per ogni chiave
             new Color(58, 61, 63), //frame_background                                                       (0)
+            new Color(212, 212, 212), //frame_title_color
             new Color(212, 212, 212), //text_color
             new Color(78, 81, 83), //list_background
             new Color(212, 212, 212), //list_text_color
-            new Color(98, 101, 103), //list_selected_background
-            new Color(80, 80, 80), //list_selected_nofocus_background                                       (5)
+            new Color(98, 101, 103), //list_selected_background                                             (5)
+            new Color(80, 80, 80), //list_selected_nofocus_background
             new Color(212, 212, 212), //list_selected_text_color
             BorderFactory.createCompoundBorder( //list_selected_border
                     BorderFactory.createLineBorder(new Color(72, 74, 75)),
                     BorderFactory.createEmptyBorder(2, 2, 0, 0)
             ),
             new Color(108, 111, 113), //input_background
-            new Color(218, 221, 223), //input_text_color
-            BorderFactory.createCompoundBorder( //input_border                                                      (10)
+            new Color(218, 221, 223), //input_text_color                                                   (10)
+            BorderFactory.createCompoundBorder( //input_border
                     BorderFactory.createLineBorder(new Color(68, 71, 73)),
                     BorderFactory.createEmptyBorder(2, 0, 0, 0)
             ),
@@ -105,33 +108,33 @@ public class GraphicsTheme {
                     new ImageIcon(get_resource("/images/no_eye.png"))
             ),
             BorderFactory.createLineBorder(new Color(38, 41, 43)), //temp_panel_border
-            new ButtonIcons( //button_top_bar_left_shift
+            new ButtonIcons( //button_top_bar_left_shift                                                            (15)
                     new ImageIcon(get_resource("/images/left_arrow.png")),
                     new ImageIcon(get_resource("/images/left_arrow_sel.png")),
                     new ImageIcon(get_resource("/images/left_arrow_pres.png")),
                     new ImageIcon(get_resource("/images/left_arrow.png"))
             ),
-            new ButtonIcons( //button_top_bar_right_shift                                                           (15)
+            new ButtonIcons( //button_top_bar_right_shift
                     new ImageIcon(get_resource("/images/right_arrow.png")),
                     new ImageIcon(get_resource("/images/right_arrow_sel.png")),
                     new ImageIcon(get_resource("/images/right_arrow_pres.png")),
                     new ImageIcon(get_resource("/images/right_arrow.png"))
             ),
             new ButtonIcons( //button_top_bar_stop_mod
-                    new ImageIcon(get_resource("/images/power_off.png")),
-                    new ImageIcon(get_resource("/images/power_off_sel.png")),
-                    new ImageIcon(get_resource("/images/power_off_pres.png")),
-                    new ImageIcon(get_resource("/images/power_off_dis.png"))
+                    new ImageIcon(get_resource("/images/mod_off.png")),
+                    new ImageIcon(get_resource("/images/mod_off_sel.png")),
+                    new ImageIcon(get_resource("/images/mod_off_pres.png")),
+                    new ImageIcon(get_resource("/images/mod_off.png"))
             ),
             new ImageIcon(get_resource("/images/molly.png")), //central_panel_icon
             Color.black, //central_panel_background
-            new ButtonIcons( //client_panel_connect
+            new ButtonIcons( //client_panel_connect                                                                 (20)
                     new ImageIcon(get_resource("/images/power_on.png")),
                     new ImageIcon(get_resource("/images/power_on_sel.png")),
                     new ImageIcon(get_resource("/images/power_on_pres.png")),
                     new ImageIcon(get_resource("/images/power_on_dis.png"))
             ),
-            new ButtonIcons( //client_panel_disconnect                                                              (20)
+            new ButtonIcons( //client_panel_disconnect
                     new ImageIcon(get_resource("/images/power_off.png")),
                     new ImageIcon(get_resource("/images/power_off_sel.png")),
                     new ImageIcon(get_resource("/images/power_off_pres.png")),
@@ -155,8 +158,8 @@ public class GraphicsTheme {
                     new ImageIcon(get_resource("/images/add_server_pres.png")),
                     new ImageIcon(get_resource("/images/add_server_dis.png"))
             ),
-            new Color(88, 91, 93), //title_bar_background
-            new ButtonIcons( //title_bar_close                                                                      (25)
+            new Color(88, 91, 93), //title_bar_background                                                  (25)
+            new ButtonIcons( //title_bar_close
                     new ImageIcon(get_resource("/images/exit.png")),
                     new ImageIcon(get_resource("/images/exit_pres.png")),
                     new ImageIcon(get_resource("/images/exit_pres.png")),
@@ -175,8 +178,8 @@ public class GraphicsTheme {
                     new ImageIcon(get_resource("/images/hide.png"))
             ),
             new Color(73, 76, 78), //dropdown_selected_background
-            new Color(211, 211, 211), //dropdown_selected_text_color
-            BorderFactory.createLineBorder(new Color(108, 111, 113), 2), //dropdown_border         (30)
+            new Color(211, 211, 211), //dropdown_selected_text_color                                       (30)
+            BorderFactory.createLineBorder(new Color(108, 111, 113), 2), //dropdown_border
             new Color(58, 61, 63), //dropdown_background
             new Color(212, 212, 212), //dropdown_text_color
             new ButtonIcons( //settings_ok
@@ -185,13 +188,13 @@ public class GraphicsTheme {
                     new ImageIcon(get_resource("/images/ok_sel.png")),
                     new ImageIcon(get_resource("/images/ok.png"))
             ),
-            new ButtonIcons( //settings_apply
+            new ButtonIcons( //settings_apply                                                                       (35)
                     new ImageIcon(get_resource("/images/apply.png")),
                     new ImageIcon(get_resource("/images/apply_pres.png")),
                     new ImageIcon(get_resource("/images/apply_sel.png")),
                     new ImageIcon(get_resource("/images/apply.png"))
             ),
-            new ButtonIcons( //settings_annulla                                                                     (35)
+            new ButtonIcons( //settings_annulla
                     new ImageIcon(get_resource("/images/cancel.png")),
                     new ImageIcon(get_resource("/images/cancel_pres.png")),
                     new ImageIcon(get_resource("/images/cancel_sel.png")),
@@ -200,8 +203,8 @@ public class GraphicsTheme {
             new ImageIcon(get_resource("/images/menu_open.png")), //settings_dropdown_list_opened_icon
             new ImageIcon(get_resource("/images/menu_closed.png")), //settings_dropdown_list_closed_icon
             new Color(78, 81, 83), //scroll_bar_thumb_color
-            new Color(58, 61, 63), //scroll_bar_thumb_darkshadow_color
-            new Color(108, 111, 113), //scroll_bar_thumb_highlight_color                                   (40)
+            new Color(58, 61, 63), //scroll_bar_thumb_darkshadow_color                                     (40)
+            new Color(108, 111, 113), //scroll_bar_thumb_highlight_color
             new Color(128, 131, 133), //scroll_bar_rail_color
             new ImageIcon(get_resource("/images/cascate_icon.png")) //cascate_item_icon
     };

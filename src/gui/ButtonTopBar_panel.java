@@ -46,7 +46,7 @@ public abstract class ButtonTopBar_panel {
     private static JButton stop_mod;
     private static JPanel buttons_panel;
 
-    protected static JPanel init() throws IOException {
+    protected static JPanel init() {
         if (buttons_container != null) { //se è già stato inizializzato non ha bisogno di ripetere tutto
             return buttons_container;
         }
@@ -83,7 +83,7 @@ public abstract class ButtonTopBar_panel {
         left_shift.setContentAreaFilled(false);
         stop_mod.setContentAreaFilled(false);
 
-        buttons_container.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttons_container.setLayout(new FlowLayout(FlowLayout.LEFT, 3, 0));
         add_buttons_to_panel();
 
         //aggiunge tutti i componenti al pannello organizzandoli nella griglia

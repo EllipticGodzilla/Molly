@@ -7,7 +7,6 @@ import gui.themes.standard_builders.ImageBuilder;
 import gui.temppanel.TempPanel;
 import gui.temppanel.TempPanel_info;
 
-import javax.swing.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,7 +34,7 @@ public abstract class GraphicsSettings {
     //tema che è utilizzato in questo momento
     private static GraphicsTheme active_theme;
 
-    /*
+    /**
      * file_loader e updater vengono aggiunti solo una volta decifrati tutti i file, poiché altrimenti verrebbero caricati
      * tutti i temi due volte a ogni startup
      */
@@ -44,8 +43,8 @@ public abstract class GraphicsSettings {
         FileInterface.add_file_loader(GraphicsSettings::load_from_files);
     }
 
-    /*
-     * cerca fra tutti i file disponibili quelli con nome database/graphics/.gps e aggiunge il loro nome fra i temi disponibili,
+    /**
+     * Cerca fra tutti i file disponibili quelli con nome database/graphics/.gps e aggiunge il loro nome fra i temi disponibili,
      * se il nome coincide con quello in database/graphics/default.dat genera un GraphicsTheme con quelle specifiche e lo
      * imposta con tema attivo
      */
@@ -112,7 +111,6 @@ public abstract class GraphicsSettings {
             String file_name = "database/graphics/" + theme_name.replaceAll(" ", "_") + ".gps";
 
             ThemeChanges changes = theme_changes.get(theme_name);
-            theme_changes.remove(theme_name);
 
             if (changes.ACTION == ThemeChanges.DELETE) {
                 FileInterface.delete_file(file_name);
@@ -133,6 +131,7 @@ public abstract class GraphicsSettings {
                 update_file_content(file_name, changes.changes_vector);
             }
         }
+        theme_changes.clear();
 
         //salva il theme utilizzato in questo momento come default
         FileInterface.overwrite_file("database/graphics/default.dat", active_theme.get_name().getBytes());
@@ -185,7 +184,7 @@ public abstract class GraphicsSettings {
         return new_values;
     }
 
-    //ritorna l'oggetto GraphicsTheme legato al tema con il nome specificato
+    /// Ritorna l'oggetto GraphicsTheme legato al tema con il nome specificato
     public static GraphicsTheme get_theme(String theme_name) {
         if (theme_name.equals("standard theme")) {
             return new GraphicsTheme("standard theme");
@@ -238,7 +237,16 @@ public abstract class GraphicsSettings {
         return theme;
     }
 
-    //applica i cambiamenti specificati in ThemeChanges al tema, ritorna null nel caso changes specifichi di eliminarlo
+    /**
+     * Crea un nuovo oggetto GraphicsTheme a partire da un theme e delle modifiche da apportargli.
+     * Le modifiche del theme NON vengono memorizzate nella lista in GraphicsSettings, quindi richiesto il theme "pippo"
+     * con GraphicsTheme.get_theme("pippo"), se gli si applicano delle modifiche con questo metodo e poi lo si richiede
+     * nuovamente, le modifiche non compariranno.
+     * Per caricare le modifiche di un theme guarda load_changes
+     * @param theme theme di partenza
+     * @param changes modifiche da apportare al theme
+     * @return nuovo theme con le modifiche apportate o null nel caso in changes sia specificato di eliminarlo
+     */
     public static GraphicsTheme change_theme(GraphicsTheme theme, ThemeChanges changes) {
         //il tema è stato rimosso ma non è stato ancora eliminato il file
         if (changes.ACTION == ThemeChanges.DELETE) {
@@ -265,11 +273,15 @@ public abstract class GraphicsSettings {
         return theme;
     }
 
-    //registra delle modifiche a un tema
-    public static void add_changes(String theme_name, ThemeChanges new_changes) {
+    /**
+     * Carica le modifiche a un theme dal suo nome,
+     * @param theme_name
+     * @param new_changes
+     */
+    public static void load_changes(String theme_name, ThemeChanges new_changes) {
         ThemeChanges changes = theme_changes.get(theme_name);
 
-        //è la prima modifica che si fa a questo tema ed è stato creato
+        //se questo theme non è ancora stato modificato lo aggiunge alla lista di themes modificati
         if (changes == null) {
             theme_changes.put(theme_name, new_changes);
         }

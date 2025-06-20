@@ -23,7 +23,7 @@ public class Main {
     //contiene metodi aggiunti dalle mod che vengono eseguiti alla chiusura del software
     private static Vector<Method> end_methods = new Vector<>();
 
-    public static void main() throws IOException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
+    public static void main() {
         Logger.log("================================== Client Started ==================================");
         Runtime.getRuntime().addShutdownHook(shut_down);
 

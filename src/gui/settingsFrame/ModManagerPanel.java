@@ -12,7 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /*
- * permette alle mod di aggiungere delle loro impostazioni, il funzionamento è esattamente come GodzillaSettingsPanel
+ * permette alle mod di aggiungere delle loro impostazioni, il funzionamento è esattamente come MollySettingsPanel
  * potendo registrare SettingsPanel che vengono selezionati da un CascateMenu e visualizzati in questo pannello
  */
 public class ModManagerPanel implements SettingsPanel {

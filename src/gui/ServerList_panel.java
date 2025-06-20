@@ -24,7 +24,7 @@ public abstract class ServerList_panel {
     private static MList server_list;
 
     private static JPanel serverL_panel = null;
-    protected static JPanel init() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException {
+    protected static JPanel init() {
         if (serverL_panel == null) {
             serverL_panel = new JPanel();
             serverL_panel.setOpaque(false);

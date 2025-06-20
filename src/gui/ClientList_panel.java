@@ -20,7 +20,7 @@ public abstract class ClientList_panel {
     private static MList clients_list = null;
     private static JPanel client_panel = null;
 
-    protected static JPanel init() throws IOException {
+    protected static JPanel init() {
         if (client_panel == null) {
             client_panel = new JPanel();
             client_panel.setLayout(new GridBagLayout());
