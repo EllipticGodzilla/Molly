@@ -311,7 +311,7 @@ public class ModLoader extends ClassLoader {
 
         int array_size = encoder_class.getAnnotation(EncoderDefinition.class).array_size();
 
-        EncodersWrapper info = new EncodersWrapper(name, initializer, array_size, encoder, decoder);
+        EncoderWrapper info = new EncoderWrapper(name, initializer, array_size, encoder, decoder);
         ServerInterface.add_encoder(name, info);
     }
 

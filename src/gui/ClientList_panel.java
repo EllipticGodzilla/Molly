@@ -32,16 +32,11 @@ public abstract class ClientList_panel {
             disconnect = new JButton();
             clients_list = new MList("client list");
             MScrollPane clients_scroller = new MScrollPane(clients_list);
-            JPanel spacer = new JPanel();
 
             disconnect.setEnabled(false);
 
-            spacer.setFocusable(false);
-            spacer.setOpaque(false);
-
             connect.setBorder(null);
             disconnect.setBorder(null);
-            spacer.setBorder(null);
 
             connect.addActionListener(join_class);
             disconnect.addActionListener(exit_class);
@@ -53,33 +48,30 @@ public abstract class ClientList_panel {
 
             GridBagConstraints c = new GridBagConstraints();
 
-            c.fill = GridBagConstraints.BOTH;
-            c.weighty = 0; //i due pulsanti non si ridimensionano
-            c.weightx = 0;
-
+            c.fill = GridBagConstraints.VERTICAL;
+            c.anchor = GridBagConstraints.FIRST_LINE_START;
+            c.weighty = 0;
+            c.weightx = 1;
             c.gridx = 0;
             c.gridy = 0;
             c.insets = new Insets(0, 0, 5, 5);
+
             client_panel.add(disconnect, c);
 
+            c.fill = GridBagConstraints.BOTH;
             c.gridx = 2;
             c.gridy = 0;
+            c.weightx = 0;
             c.insets = new Insets(0, 5, 5, 0);
-            client_panel.add(connect, c);
 
-            c.weightx = 1; //lo spacer dovrà allungarsi sulle x per permettere ai pulsanti di rimanere delle stesse dimensioni
+            client_panel.add(connect, c);;
 
-            c.gridx = 1;
-            c.gridy = 0;
-            c.insets = new Insets(0, 5, 5, 5);
-            client_panel.add(spacer, c);
-
-            c.weighty = 1; //la lista di client dovrà allungarsi sulle y per compensare i pulsanti
-
+            c.weighty = 1;
             c.gridx = 0;
             c.gridy = 1;
             c.gridwidth = 3;
             c.insets = new Insets(5, 0, 0, 0);
+
             client_panel.add(clients_scroller, c);
 
             update_colors();

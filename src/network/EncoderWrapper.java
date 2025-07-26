@@ -14,12 +14,12 @@ import java.lang.reflect.Method;
  * 2) encoder: indovina? Richiede un byte[] e lo codifica ritornando un byte[]
  * 3) decoder: uguale a sopra
  */
-public class EncodersWrapper {
+public class EncoderWrapper {
     public final String name;
     public final int array_size;
     private final Method initializer, encoder, decoder;
 
-    public EncodersWrapper(String name, Method initializer, int array_size, Method encoder, Method decoder) {
+    public EncoderWrapper(String name, Method initializer, int array_size, Method encoder, Method decoder) {
         this.name = name;
         this.array_size = array_size;
         this.initializer = initializer;

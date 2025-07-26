@@ -1,15 +1,22 @@
 package gui.custom;
 
 import files.FileInterface;
+import files.Logger;
 import gui.settingsFrame.*;
 import gui.themes.GraphicsSettings;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -29,7 +36,16 @@ public class MFrame extends JFrame {
     private final DnsSettingsPanel dns_settings_panel = new DnsSettingsPanel();
 
     public MFrame() {
-        super();
+        super("Molly client");
+
+        Vector<BufferedImage> icons = new Vector<>();
+
+        icons.add(load_icon("images/icon_16.png"));
+        icons.add(load_icon("images/icon_32.png"));
+        icons.add(load_icon("images/icon_64.png"));
+        icons.add(load_icon("images/icon_128.png"));
+
+        super.setIconImages(icons);
 
         //volendo un JFrame undecorated ma che può essere ridimensionato dal mouse imposta una decorazione e poi rimuove la grafica
         this.setUndecorated(true);
@@ -73,6 +89,18 @@ public class MFrame extends JFrame {
         init_menu_bar();
 
         layeredPane.set_menu_bar(menu_bar);
+    }
+
+    private static BufferedImage load_icon(String icon_path) {
+        try {
+            return ImageIO.read((InputStream) Thread.currentThread().getContextClassLoader().getResourceAsStream(icon_path));
+        }
+        catch (Exception e) {
+            Logger.log("impossibile caricare l'icona: (" + icon_path + ") per MFrame", true);
+            Logger.log(e.getMessage(), true);
+
+            return null;
+        }
     }
 
     public void update_colors() {

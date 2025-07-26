@@ -30,6 +30,7 @@ public abstract class FileInterface {
         add_file_loader(FileInterface::standard_loader);
 
         check_essential_files();
+        Logger.init();
     }
 
     //controlla che tutti i file e cartelle essenziali esistano

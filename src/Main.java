@@ -9,30 +9,25 @@ import gui.temppanel.TempPanel;
 import gui.temppanel.TempPanel_info;
 import network.*;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.util.*;
 
 public class Main {
-    private static byte[] database_key_test;
+    private static byte[] file_key_test;
 
     //contiene metodi aggiunti dalle mod che vengono eseguiti alla chiusura del software
     private static Vector<Method> end_methods = new Vector<>();
 
     public static void main() {
-        Logger.log("================================== Client Started ==================================");
         Runtime.getRuntime().addShutdownHook(shut_down);
 
         //salva i byte da comparare per controllare se la password inserita è corretta
         try {
-            database_key_test = Main.class.getClassLoader().getResourceAsStream("files/FileCipherKey.dat").readAllBytes();
+            file_key_test = Main.class.getClassLoader().getResourceAsStream("files/FileCipherKey.dat").readAllBytes();
         }
-        catch (Exception _) { //il file contenente la password è mancante
-            System.out.println("impossibile trovare il file contenente la password per decifrare i file all'interno dell'eseguibile");
+        catch (Exception e) { //il file contenente la password è mancante
+            System.out.println("impossibile trovare il file contenente la password per decifrare i file all'interno dell'eseguibile\n" + e.getMessage());
             System.exit(0);
         }
 
@@ -45,19 +40,9 @@ public class Main {
         Logger.log("eseguiti tutti i metodi da chiamare subito a startup");
 
         GraphicsSettings.load_from_files();
-        JFrame main_frame = MollyFrame.init();
+        MollyFrame.init();
         SettingsFrame.init();
         ServerInterface.init_standards();
-
-        //imposta l'icona del main frame
-        Vector<Image> icons = new Vector<>();
-
-        icons.add(new ImageIcon(Main.class.getResource("/images/icon_16.png")).getImage());
-        icons.add(new ImageIcon(Main.class.getResource("/images/icon_32.png")).getImage());
-        icons.add(new ImageIcon(Main.class.getResource("/images/icon_64.png")).getImage());
-        icons.add(new ImageIcon(Main.class.getResource("/images/icon_128.png")).getImage());
-
-        main_frame.setIconImages(icons);
 
         fire_methods(runnable_method[1]);
         Logger.log("eseguiti tutti i metodi da chiamare prima di decifrare i file");
@@ -78,18 +63,19 @@ public class Main {
             ).set_psw_indices(0), Thread.currentThread());
 
             byte[] psw_hash = test_psw((char[]) input.elementAt(0));
-            if (psw_hash != null) { //controlla sia inserita la password corretta
+            if (psw_hash == null) {
+                Logger.log("è stata inserita una password per decifrare i file errata");
+
+                TempPanel.show(new TempPanel_info(
+                        TempPanel_info.SINGLE_MSG,
+                        false,
+                        "password non corretta, riprovare"
+                ), null);
+            }
+            else {
                 Logger.log("inserita la password corretta per decifrare i file");
 
-                try {
-                    FileCipher.init_ciphers(psw_hash); //inizializza File_cipher
-                }
-                catch (Exception e) {
-                    Logger.log("impossibile inizializzare i cipher per i file", true);
-                    Logger.log(e.getMessage(), true);
-
-                    System.exit(0);
-                }
+                FileCipher.init_ciphers(psw_hash); //inizializza File_cipher
 
                 //decifra tutte le informazioni contenute dei file cifrati e aggiorna tutte le variabili interne con i dati
                 FileInterface.load_from_disk();
@@ -99,15 +85,6 @@ public class Main {
                 Logger.log("eseguiti tutti i metodi da chiamare dopo aver decifrato i file");
 
                 return;
-            }
-            else {
-                Logger.log("è stata inserita una password per decifrare i file errata");
-
-                TempPanel.show(new TempPanel_info(
-                        TempPanel_info.SINGLE_MSG,
-                        false,
-                        "password non corretta, riprovare"
-                ), null);
             }
         }
     }
@@ -126,16 +103,15 @@ public class Main {
             //la seconda metà dell hash viene utilizzata per controllare che la password sia corretta, confrontandola con una copia che ha in un file dell hash corretto
             byte[] comp_hash = Arrays.copyOfRange(hash, 32, 64);
 
-            if (Arrays.equals(comp_hash, database_key_test)) {
+            if (Arrays.equals(comp_hash, file_key_test)) {
                 return hash;
             }
-            else {
-                return null;
-            }
+
+            return null;
         }
         catch (Exception e) {
             Logger.log("errore nel calcolare l'hash della password", true);
-            Logger.log(e.getMessage(), true);
+            Logger.log(e.getMessage(), true, '\n', false);
 
             return null;
         }

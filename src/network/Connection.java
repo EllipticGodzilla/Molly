@@ -1,6 +1,5 @@
 package network;
 
-import com.sun.tools.javac.Main;
 import files.Logger;
 
 import java.security.SecureRandom;
@@ -27,7 +26,7 @@ public abstract class Connection {
 
     //una volta connesso a un server e inizializzati connector ed encoder, vengono memorizzati qui
     private static ConnectorWrapper current_connector = null;
-    private static EncodersWrapper current_encoder = null;
+    private static EncoderWrapper current_encoder = null;
 
     //thread che legge tutti i messaggi in arrivo dal server
     private static Thread conv_reader;
@@ -62,12 +61,27 @@ public abstract class Connection {
      */
     static {
         random.setSeed(System.currentTimeMillis());
+        load_standard_prefix();
+    }
+
+    /**
+     * Inizializza prefix_actions con le risposte ai prefissi standard del server:
+     * <ul>
+     *     <li>
+     *         {@code log_here}: indica al client che cc utilizzare per eseguire il login nel server
+     *     </li>
+     * </ul>
+     */
+    private static void load_standard_prefix() {
+        register_prefix_action("log_here", (cc, _) -> {
+            ServerInterface.log(cc);
+        });
     }
 
     /*
      * se non è già in ascolto utilizzando un altro connector cambia connector ed encoder e inizia ad ascoltare
      */
-    protected static boolean init(ConnectorWrapper connector, EncodersWrapper encoder) {
+    protected static boolean init(ConnectorWrapper connector, EncoderWrapper encoder) {
         if (conv_reader != null && conv_reader.isAlive()) {
             Logger.log("impossibile modificare connector ed encoder di Connection mentre si è ancora in ascolto con un server", true);
             return false;
@@ -110,6 +124,15 @@ public abstract class Connection {
         if (!register_action(cc, action)) { //fallisce a registare il notifier action, c'è un notifier registrato a questo cc
             Logger.log("inviato il messaggio: " + new String(msg) + " con cc = " + cc + " ma è impossibile registrare l'azione poichè qualcun'altro è in attesa a questo cc", true);
         }
+    }
+
+    protected static boolean lock_cc(byte cc) {
+        if (locked_cc.contains(cc)) {
+            return false;
+        }
+
+        locked_cc.add(cc);
+        return true;
     }
 
     protected static void unlock_cc(byte cc) {

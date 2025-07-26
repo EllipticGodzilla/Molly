@@ -12,7 +12,7 @@ public abstract class FileCipher {
     private static Cipher encoder = null;
     private static Cipher decoder = null;
 
-    public static void init_ciphers(byte[] key_hash) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public static void init_ciphers(byte[] key_hash) {
         if (encoder == null && decoder == null) {
             //utilizza i primi 32byte dell hash come key e iv per inizializzare AES
             byte[] key_bytes = Arrays.copyOf(key_hash, 16);
@@ -22,11 +22,20 @@ public abstract class FileCipher {
             IvParameterSpec iv = new IvParameterSpec(iv_bytes);
 
             //inzializza encoder e decoder con key e iv appena calcolati
-            encoder = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            decoder = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            try {
+                encoder = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                decoder = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
-            encoder.init(Cipher.ENCRYPT_MODE, key, iv);
-            decoder.init(Cipher.DECRYPT_MODE, key, iv);
+                encoder.init(Cipher.ENCRYPT_MODE, key, iv);
+                decoder.init(Cipher.DECRYPT_MODE, key, iv);
+            }
+            catch (Exception e) {
+                Logger.log("impossibile inizializzare encoder e decoder per i files", true);
+                Logger.log(e.getMessage(), true, '\n', false);
+
+                System.out.println("impossibile inizializzare encoder e decoder per i files");
+                System.exit(0);
+            }
             Logger.log("definiti i cipher per decifrare e cifrare i file correttamente");
         }
         else {
