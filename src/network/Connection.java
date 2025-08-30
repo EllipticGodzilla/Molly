@@ -74,6 +74,7 @@ public abstract class Connection {
      */
     private static void load_standard_prefix() {
         register_prefix_action("log_here", (cc, _) -> {
+            Connection.lock_cc(cc);
             ServerInterface.log(cc);
         });
     }
@@ -279,7 +280,7 @@ public abstract class Connection {
 
         //trova l'index del primo carattare ':' in msg[] per separare il prefisso dal payload, se non c'è nessun ':' trova msg.length
         int comma_index;
-        for (comma_index = 0; comma_index < msg.length || msg[comma_index] != ':'; comma_index++) {}
+        for (comma_index = 0; comma_index < msg.length && msg[comma_index] != ':'; comma_index++) {}
 
         String prefix = new String(Arrays.copyOfRange(msg, 0, comma_index));
         byte[] payload = Arrays.copyOfRange(msg, Math.min(comma_index + 1, msg.length), msg.length);

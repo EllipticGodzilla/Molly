@@ -218,7 +218,8 @@ public abstract class ServerInterface {
 
         String server_reply;
         try {
-             server_reply = new String(connector.read());
+            byte[] reply_bytes = session_cipher[1].doFinal(connector.read());
+             server_reply = new String(reply_bytes);
         }
         catch (Exception e) {
             Logger.log("impossibile comprendere la risposta al server durante l'encoder agreement", true);
@@ -584,6 +585,8 @@ public abstract class ServerInterface {
             byte cc = send("login".getBytes(), null);
 
             byte[] server_return = Connection.wait_for_reply(cc);
+            Connection.unlock_cc(cc);
+
             if (server_return == null) {
                 Logger.log("impossibile eseguire un login, errore nell'attesa delle informazioni da richiedere all'utente dal server", true);
                 TempPanel.show(new TempPanel_info(
@@ -596,9 +599,7 @@ public abstract class ServerInterface {
                 return;
             }
 
-            String requests_str = new String(server_return);
-
-            login_requests = build_temppanel_info(requests_str);
+            login_requests = build_temppanel_info(new String(server_return));
         }
 
         sender_prefix = "login:".getBytes();
@@ -614,6 +615,8 @@ public abstract class ServerInterface {
             byte cc = send("register".getBytes(), null);
 
             byte[] server_return = Connection.wait_for_reply(cc);
+            Connection.unlock_cc(cc);
+
             if (server_return == null) {
                 Logger.log("impossibile registrari, errore nell'attesa delle informazioni da richiedere all'utente dal server", true);
                 TempPanel.show(new TempPanel_info(
@@ -625,10 +628,8 @@ public abstract class ServerInterface {
                 close(true);
                 return;
             }
-            String requests_str = new String(Connection.wait_for_reply(cc));
-            Connection.unlock_cc(cc);
 
-            register_requests = build_temppanel_info(requests_str);
+            register_requests = build_temppanel_info(new String(server_return));
         }
 
         sender_prefix = "register:".getBytes();
@@ -645,7 +646,7 @@ public abstract class ServerInterface {
      * 3) "<msg>:<opt1>,<opt2>,..." viene richiesto di scegliere fra varie opzioni
      */
     private static TempPanel_info build_temppanel_info(String request_spec) {
-        String[] request_args = request_spec.split(":");
+        String[] request_args = request_spec.split(";");
 
         //per generare il TempPanel_info ho bisogno di array, non posso utilizzare i vettori senza poi doverli riconvertire
         int password_num = 0, menu_num = 0;
@@ -748,10 +749,10 @@ public abstract class ServerInterface {
     private static final OnArrival log_result = new OnArrival() {
         @Override
         public void on_arrival(byte conv_code, byte[] msg) {
-            Connection.unlock_cc(conv_code);
             String msg_str = new String(msg);
 
             if (msg_str.startsWith("log")) { //login con successo
+                Connection.unlock_cc(login_cc);
                 client_id = msg_str.substring(4); //taglia "log:"
 
                 TempPanel.show(new TempPanel_info(
@@ -1220,10 +1221,7 @@ abstract class StdProtocol {
     @EncoderDefinition.Encoder
     public static byte[] encode(byte[] msg) {
         try {
-            byte[] encoded_msg = encoder.doFinal(msg); //decodifica il messaggio
-            regen_iv(); //rigenera gli iv
-
-            return encoded_msg;
+            return encoder.doFinal(msg);
         } catch (Exception _) {
             throw new RuntimeException("impossibile cifrare: " + new String(msg));
         }
@@ -1232,22 +1230,10 @@ abstract class StdProtocol {
     @EncoderDefinition.Decoder
     public static byte[] decode(byte[] msg) {
         try {
-            byte[] plain_msg = decoder.doFinal(msg);
-            regen_iv();
-
-            return plain_msg;
+            return decoder.doFinal(msg);
         } catch (Exception _) {
             throw new RuntimeException("impossibile decifrare: " + new String(msg));
         }
-    }
-
-    private static void regen_iv() {
-        try {
-            IvParameterSpec iv = next_iv();
-            encoder.init(Cipher.ENCRYPT_MODE, session_key, iv);
-            decoder.init(Cipher.DECRYPT_MODE, session_key, iv);
-        }
-        catch (Exception _) {} //impossibile rientrare
     }
 
     private static IvParameterSpec next_iv() { //genera un iv casuale
@@ -1286,6 +1272,8 @@ abstract class STDConnector {
         catch (IOException e) {
             Logger.log("impossibile connettersi con il server, errore nell'apertura del socket:", true);
             Logger.log(e.getMessage(), true);
+
+            return null;
         }
         Logger.log("connessione con il server instaurata con successo");
 
@@ -1361,8 +1349,11 @@ abstract class STDConnector {
             Pattern info_patter = Pattern.compile("([^;]+);([^;]+);([^;]+);([^;]+);([^;]+)");
             Matcher info_matcher = info_patter.matcher(new String(server_info_bytes));
 
-            if (info_matcher.matches() && info_matcher.group(3).equals(server_info.SERVER_LINK)) {
-                String server_pkey_base64 = info_matcher.group(4);
+            if (info_matcher.matches() && info_matcher.group(2).equals(server_info.SERVER_IP) &&
+                info_matcher.group(3).equals(Integer.toString(server_info.SERVER_PORT)) &&
+                info_matcher.group(4).equals(server_info.SERVER_LINK)) {
+
+                String server_pkey_base64 = info_matcher.group(5);
                 return Base64.getDecoder().decode(server_pkey_base64);
             }
             else {
@@ -1403,8 +1394,8 @@ abstract class STDConnector {
 
     /*
      * Concorda con il server una chiave per la sessione e invia 2 byte cifrati con la nuova chiave, il server dovrà
-     * mandarli in dietro cifrati scambiati di posto, questo serve per assicurarsi che il server conosca la chiave privata
-     * e non so se davvero sia utile, ma penso sia sensato. Ritorna il cipher encoder per questa sessione
+     * mandarli in dietro cifrati scambiati di posto, questo serve per assicurarsi che il server conosca la chiave
+     * privata e non so se davvero sia utile, ma penso sia sensato. Ritorna il cipher encoder per questa sessione
      */
     private static Cipher[] session_cipher(Cipher server_pkey_encoder) {
         try {
@@ -1444,10 +1435,15 @@ abstract class STDConnector {
             }
 
             byte[] decoded_test_bytes = session_decoder.doFinal(received_test_bytes);
-            if (decoded_test_bytes.length != 2 || decoded_test_bytes[0] != test_bytes[1] || decoded_test_bytes[1] != test_bytes[0]) {
+            if (decoded_test_bytes.length != 4 || decoded_test_bytes[0] != test_bytes[1] || decoded_test_bytes[1] != test_bytes[0]) {
                 Logger.log("il server non ha decifrato correttamente i test bytes", true);
                 return null;
             }
+
+            byte[] final_test_bytes = new byte[] {decoded_test_bytes[3], decoded_test_bytes[2]};
+            final_test_bytes = session_encoder.doFinal(final_test_bytes);
+            send(final_test_bytes);
+
             Logger.log("test bytes ricevuti correttamente, session key stabilita");
 
             return new Cipher[] {session_encoder, session_decoder};
